@@ -1,0 +1,10 @@
+.DS_Store
+rss_subscriptions.db
+bot
+
+.devcontainer
+.vscode
+.dockerignore
+.gitignore
+.Dockerfile
+README.md
