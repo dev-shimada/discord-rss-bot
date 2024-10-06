@@ -15,10 +15,11 @@ RUN CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o bot main.go
 
 
 FROM --platform=$BUILDPLATFORM gcr.io/distroless/base-debian12:latest
-ARG USERNAME=nonroot
-ARG GROUPNAME=nonroot
+# ARG USERNAME=nonroot
+# ARG GROUPNAME=nonroot
 # ENV TZ Asia/Tokyo
 WORKDIR /app
-COPY --chown=${USERNAME}:${GROUPNAME} --chmod=100  --from=build /app/bot /app/bot
-USER ${USERNAME}
+# COPY --chown=${USERNAME}:${GROUPNAME} --chmod=100  --from=build /app/bot /app/bot
+COPY --chmod=100  --from=build /app/bot /app/bot
+# USER ${USERNAME}
 ENTRYPOINT [ "/app/bot" ]
