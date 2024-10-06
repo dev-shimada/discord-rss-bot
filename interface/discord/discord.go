@@ -2,7 +2,8 @@ package discord
 
 import (
 	"context"
-	"log"
+	"fmt"
+	"log/slog"
 	"net/url"
 	"strings"
 	"time"
@@ -42,7 +43,7 @@ func (d discordHandler) Create(ds *discordgo.Session, dm *discordgo.MessageCreat
 	rssURL, err := url.Parse(value)
 	if err != nil {
 		if _, err := ds.ChannelMessageSend(dm.ChannelID, "Invalid URL."); err != nil {
-			log.Printf("Failed to send message: %v", err)
+			slog.Error(fmt.Sprintf("Failed to send message: %v", err))
 		}
 		return
 	}
@@ -50,7 +51,7 @@ func (d discordHandler) Create(ds *discordgo.Session, dm *discordgo.MessageCreat
 	// subscribe
 	msg := d.su.Create(model.Subscription{ChannelID: dm.ChannelID, RSSURL: rssURL.String()})
 	if _, err := ds.ChannelMessageSend(dm.ChannelID, msg); err != nil {
-		log.Printf("Failed to send message: %v", err)
+		slog.Error(fmt.Sprintf("Failed to send message: %v", err))
 	}
 }
 
@@ -69,7 +70,7 @@ func (d discordHandler) CheckNewEntries(ctx context.Context) {
 		case <-t.C:
 			subs, err := d.su.FindAll()
 			if err != nil {
-				log.Fatalf("error fetching subscriptions: %v", err)
+				slog.Warn(fmt.Sprintf("error fetching subscriptions: %v", err))
 				return
 			}
 			newEntries := d.ru.CheckNewEntries(subs)
@@ -85,7 +86,7 @@ func (d discordHandler) CheckNewEntries(ctx context.Context) {
 							},
 						}
 						if _, err := d.ds.ChannelMessageSendComplex(entry.ChannelID, msg); err != nil {
-							log.Printf("Failed to send message: %v", err)
+							slog.Error(fmt.Sprintf("Failed to send message: %v", err))
 						}
 					}
 				}

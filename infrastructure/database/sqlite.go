@@ -2,7 +2,7 @@ package database
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/dev-shimada/discord-rss-bot/domain/model"
@@ -14,11 +14,13 @@ var db *gorm.DB
 
 func NewDB() *gorm.DB {
 	if err := RetryConnectDB(sqlite.Open("sqlite/rss_subscriptions.db"), &gorm.Config{}, 100); err != nil {
-		log.Fatalln(err)
+		slog.Error(fmt.Sprint(err))
+		return nil
 	}
 	fmt.Println("Connected")
 	if err := db.AutoMigrate(&model.Subscription{}, &model.RssEntry{}); err != nil {
-		log.Fatalln(err)
+		slog.Error(fmt.Sprint(err))
+		return nil
 	}
 	return db
 }
@@ -40,6 +42,6 @@ func RetryConnectDB(dialector gorm.Dialector, opt gorm.Option, count uint) error
 func CloseDB(db *gorm.DB) {
 	sqlDB, _ := db.DB()
 	if err := sqlDB.Close(); err != nil {
-		log.Fatalln(err)
+		slog.Error(fmt.Sprint(err))
 	}
 }

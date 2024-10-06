@@ -3,7 +3,7 @@ package router
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -23,7 +23,7 @@ func NewRouter(token string) (*discordgo.Session, error) {
 func Open(dg *discordgo.Session, dh discord.DiscordHandler) {
 	err := dg.Open()
 	if err != nil {
-		log.Fatalf("error opening connection: %v", err)
+		slog.Error(fmt.Sprintf("error opening connection: %v", err))
 		return
 	}
 	defer dg.Close()

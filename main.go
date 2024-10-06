@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/dev-shimada/discord-rss-bot/di"
@@ -10,6 +11,9 @@ import (
 )
 
 func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	// Discord Bot Token
 	token := os.Getenv("DISCORD_BOT_TOKEN")
 
@@ -19,7 +23,7 @@ func main() {
 	// Create a new Discord session using the provided bot token.
 	session, err := router.NewRouter(token)
 	if err != nil {
-		log.Fatalf("error creating Discord session: %v", err)
+		slog.Error(fmt.Sprintf("error creating Discord session: %v", err))
 	}
 
 	// DI
