@@ -42,9 +42,11 @@ func (f rssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEn
 			})
 		}
 	}
-	existingEntries := f.rr.Find(res)
-	newEntries := diff(res, existingEntries)
+	cpRes := make([]model.RssEntry, 0, len(s))
+	copy(cpRes, res)
 
+	existingEntries := f.rr.Find(cpRes)
+	newEntries := diff(res, existingEntries)
 	err := f.rr.Create(newEntries)
 	if err != nil {
 		slog.Error(fmt.Sprintf("failed to save RSS entries: %v", err))
