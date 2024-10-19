@@ -34,6 +34,10 @@ func (f rssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEn
 			continue
 		}
 		for _, item := range items {
+			// skip if the item is older than the subscribed date
+			if sub.CreatedAt.After(*item.PublishedParsed) {
+				continue
+			}
 			res = append(res, model.RssEntry{
 				RSSURL:      sub.RSSURL,
 				EntryTitle:  item.Title,
@@ -42,7 +46,7 @@ func (f rssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEn
 			})
 		}
 	}
-	cpRes := make([]model.RssEntry, 0, len(s))
+	cpRes := make([]model.RssEntry, len(s))
 	copy(cpRes, res)
 
 	existingEntries := f.rr.Find(cpRes)
@@ -64,27 +68,24 @@ func fetchRSS(rssURL string) ([]*gofeed.Item, error) {
 	return feed.Items, nil
 }
 
-func diff[T comparable](s1, s2 []T) []T {
-	diffSlice := []T{}
-	cmpMap := map[T]int{}
+func diff(s1, s2 []model.RssEntry) []model.RssEntry {
+	diffSlice := []model.RssEntry{}
+	cmpMap := map[string]int{}
 
-	// slice2が各要素が何個あるのかmapに格納
 	for _, v := range s2 {
-		cmpMap[v] += 1
+		cmpMap[v.EntryLink] += 1
 	}
 
-	// slice2にある要素をslice1にあるか確認して、なければdiffSliceに格納
 	for _, v := range s1 {
-		t, ok := cmpMap[v]
-		// slice1の要素がslice2になければ、配列に格納
+		t, ok := cmpMap[v.EntryLink]
 		if !ok {
 			diffSlice = append(diffSlice, v)
 			continue
 		}
 		if t == 1 {
-			delete(cmpMap, v)
+			delete(cmpMap, v.EntryLink)
 		} else {
-			cmpMap[v] -= 1
+			cmpMap[v.EntryLink] -= 1
 		}
 	}
 	return diffSlice
