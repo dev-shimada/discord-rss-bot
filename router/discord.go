@@ -9,8 +9,14 @@ import (
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/dev-shimada/discord-rss-bot/interface/discord"
+	"github.com/dev-shimada/discord-rss-bot/domain/model"
 )
+
+type discordHandler interface {
+	Create(ds *discordgo.Session, dig *discordgo.InteractionCreate)
+	FindAll() ([]model.Subscription, error)
+	CheckNewEntries(ctx context.Context)
+}
 
 func NewRouter(token string) (*discordgo.Session, error) {
 	dg, err := discordgo.New("Bot " + token)
@@ -20,7 +26,7 @@ func NewRouter(token string) (*discordgo.Session, error) {
 	return dg, nil
 }
 
-func Open(dg *discordgo.Session, dh discord.DiscordHandler) {
+func Open(dg *discordgo.Session, dh discordHandler) {
 	err := dg.Open()
 	if err != nil {
 		slog.Error(fmt.Sprintf("error opening connection: %v", err))

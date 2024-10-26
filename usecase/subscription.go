@@ -8,20 +8,15 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-type SubscriptionUsecase interface {
-	FindAll() ([]model.Subscription, error)
-	Create(sub model.Subscription) string
-}
-
-type subscriptionUsecase struct {
+type SubscriptionUsecase struct {
 	sr repository.SubscriptionRepository
 }
 
 func NewSubscriptionUsecase(sr repository.SubscriptionRepository) SubscriptionUsecase {
-	return &subscriptionUsecase{sr: sr}
+	return SubscriptionUsecase{sr: sr}
 }
 
-func (s subscriptionUsecase) Create(sub model.Subscription) string {
+func (s SubscriptionUsecase) Create(sub model.Subscription) string {
 	err := s.sr.Create(sub)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Failed to subscribe: %v", err))
@@ -31,6 +26,6 @@ func (s subscriptionUsecase) Create(sub model.Subscription) string {
 	return "Successfully subscribed to RSS feed."
 }
 
-func (s subscriptionUsecase) FindAll() ([]model.Subscription, error) {
+func (s SubscriptionUsecase) FindAll() ([]model.Subscription, error) {
 	return s.sr.FindAll()
 }

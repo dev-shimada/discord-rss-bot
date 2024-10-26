@@ -9,26 +9,28 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/dev-shimada/discord-rss-bot/domain/model"
-	"github.com/dev-shimada/discord-rss-bot/usecase"
 )
 
-type DiscordHandler interface {
-	Create(ds *discordgo.Session, dig *discordgo.InteractionCreate)
+type rssEntriesUsecase interface {
+	CheckNewEntries(s []model.Subscription) []model.RssEntry
+}
+
+type subscriptionUsecase interface {
 	FindAll() ([]model.Subscription, error)
-	CheckNewEntries(ctx context.Context)
+	Create(sub model.Subscription) string
 }
 
-type discordHandler struct {
+type DiscordHandler struct {
 	ds *discordgo.Session
-	su usecase.SubscriptionUsecase
-	ru usecase.RssEntriesUsecase
+	su subscriptionUsecase
+	ru rssEntriesUsecase
 }
 
-func NewDiscordHandler(ds *discordgo.Session, su usecase.SubscriptionUsecase, ru usecase.RssEntriesUsecase) DiscordHandler {
-	return &discordHandler{ds: ds, su: su, ru: ru}
+func NewDiscordHandler(ds *discordgo.Session, su subscriptionUsecase, ru rssEntriesUsecase) DiscordHandler {
+	return DiscordHandler{ds: ds, su: su, ru: ru}
 }
 
-func (d discordHandler) Create(ds *discordgo.Session, dic *discordgo.InteractionCreate) {
+func (d DiscordHandler) Create(ds *discordgo.Session, dic *discordgo.InteractionCreate) {
 	// get options
 	options := dic.ApplicationCommandData().Options
 	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
@@ -59,11 +61,11 @@ func (d discordHandler) Create(ds *discordgo.Session, dic *discordgo.Interaction
 	})
 }
 
-func (d discordHandler) FindAll() ([]model.Subscription, error) {
+func (d DiscordHandler) FindAll() ([]model.Subscription, error) {
 	return d.su.FindAll()
 }
 
-func (d discordHandler) CheckNewEntries(ctx context.Context) {
+func (d DiscordHandler) CheckNewEntries(ctx context.Context) {
 	t := time.NewTicker(10 * time.Minute)
 	defer t.Stop()
 

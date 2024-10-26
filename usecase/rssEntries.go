@@ -9,19 +9,15 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
-type RssEntriesUsecase interface {
-	CheckNewEntries(s []model.Subscription) []model.RssEntry
-}
-
-type rssEntriesUsecase struct {
+type RssEntriesUsecase struct {
 	rr repository.RssEnrtyRepository
 }
 
 func NewRssEntriesUsecase(rr repository.RssEnrtyRepository) RssEntriesUsecase {
-	return &rssEntriesUsecase{rr: rr}
+	return RssEntriesUsecase{rr: rr}
 }
 
-func (f rssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEntry {
+func (f RssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEntry {
 	if len(s) == 0 {
 		return []model.RssEntry{}
 	}
