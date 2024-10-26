@@ -26,6 +26,10 @@ func (s SubscriptionUsecase) Create(sub model.Subscription) string {
 	return "Successfully subscribed to RSS feed."
 }
 
+func (s SubscriptionUsecase) List(sub model.Subscription) ([]model.Subscription, error) {
+	return s.sr.FindByModel(sub)
+}
+
 func (s SubscriptionUsecase) FindAll() ([]model.Subscription, error) {
 	return s.sr.FindAll()
 }

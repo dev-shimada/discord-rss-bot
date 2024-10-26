@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/dev-shimada/discord-rss-bot/domain/model"
+	"github.com/olekukonko/tablewriter"
 )
 
 type rssEntriesUsecase interface {
@@ -18,6 +21,7 @@ type rssEntriesUsecase interface {
 type subscriptionUsecase interface {
 	FindAll() ([]model.Subscription, error)
 	Create(sub model.Subscription) string
+	List(sub model.Subscription) ([]model.Subscription, error)
 }
 
 type DiscordHandler struct {
@@ -57,6 +61,30 @@ func (d DiscordHandler) Create(ds *discordgo.Session, dic *discordgo.Interaction
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: fmt.Sprintf("Successfully subscribed to RSS feed: %s", rssUrl),
+		},
+	})
+}
+
+func (d DiscordHandler) List(ds *discordgo.Session, dic *discordgo.InteractionCreate) {
+	// subscribe
+	values, _ := d.su.List(model.Subscription{ChannelID: dic.ChannelID})
+
+	title := "**Subscribed RSS feeds**"
+
+	tableString := &strings.Builder{}
+	table := tablewriter.NewWriter(tableString)
+	table.SetHeader([]string{"ID", "RSS URL"})
+	for _, value := range values {
+		table.Append([]string{strconv.Itoa(int(value.ID)), value.RSSURL})
+	}
+	table.Render()
+
+	txt := fmt.Sprintf("%s\n`%s`", title, tableString.String())
+
+	_ = ds.InteractionRespond(dic.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: txt,
 		},
 	})
 }

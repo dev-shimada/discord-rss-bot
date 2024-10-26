@@ -26,6 +26,15 @@ func (s subscriptionPersistence) Find(m []model.Subscription) ([]model.Subscript
 	return m, nil
 }
 
+func (s subscriptionPersistence) FindByModel(m model.Subscription) ([]model.Subscription, error) {
+	var subs []model.Subscription
+	res := s.db.Where(m).Find(&subs)
+	if res.Error != nil {
+		return []model.Subscription{}, res.Error
+	}
+	return subs, nil
+}
+
 func (s subscriptionPersistence) FindAll() ([]model.Subscription, error) {
 	var subs []model.Subscription
 	res := s.db.Find(&subs)
