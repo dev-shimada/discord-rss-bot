@@ -1,6 +1,8 @@
 package persistence
 
 import (
+	"errors"
+
 	"github.com/dev-shimada/discord-rss-bot/domain/model"
 	"github.com/dev-shimada/discord-rss-bot/domain/repository"
 	"gorm.io/gorm"
@@ -45,5 +47,10 @@ func (s subscriptionPersistence) FindAll() ([]model.Subscription, error) {
 }
 
 func (s subscriptionPersistence) Delete(m model.Subscription) error {
-	return s.db.Delete(&m).Error
+	var subs []model.Subscription
+	s.db.Where(m).Find(&subs)
+	if len(subs) == 0 {
+		return errors.New("record not found")
+	}
+	return s.db.Where(m).Delete(&model.Subscription{}).Error
 }
