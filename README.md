@@ -1,7 +1,10 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/dev-shimada/discord-rss-bot)](https://goreportcard.com/report/github.com/dev-shimada/discord-rss-bot)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/gojp/goreportcard/blob/master/LICENSE)
+
 # discord-rss-bot
 
 ## Discord command
-- `!subscribe url`
+- `/subscribe <URL>`
 
 ## Docker build
 ```console
