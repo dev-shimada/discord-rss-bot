@@ -30,6 +30,10 @@ func (s SubscriptionUsecase) List(sub model.Subscription) ([]model.Subscription,
 	return s.sr.FindByModel(sub)
 }
 
+func (s SubscriptionUsecase) Delete(sub model.Subscription) error {
+	return s.sr.Delete(sub)
+}
+
 func (s SubscriptionUsecase) FindAll() ([]model.Subscription, error) {
 	return s.sr.FindAll()
 }

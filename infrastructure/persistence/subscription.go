@@ -43,3 +43,7 @@ func (s subscriptionPersistence) FindAll() ([]model.Subscription, error) {
 	}
 	return subs, nil
 }
+
+func (s subscriptionPersistence) Delete(m model.Subscription) error {
+	return s.db.Delete(&m).Error
+}

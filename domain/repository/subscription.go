@@ -7,4 +7,5 @@ type SubscriptionRepository interface {
 	Find(m []model.Subscription) ([]model.Subscription, error)
 	FindByModel(m model.Subscription) ([]model.Subscription, error)
 	FindAll() ([]model.Subscription, error)
+	Delete(m model.Subscription) error
 }
