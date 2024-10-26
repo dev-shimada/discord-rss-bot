@@ -14,6 +14,7 @@ import (
 
 type discordHandler interface {
 	Create(ds *discordgo.Session, dig *discordgo.InteractionCreate)
+	List(ds *discordgo.Session, dig *discordgo.InteractionCreate)
 	FindAll() ([]model.Subscription, error)
 	CheckNewEntries(ctx context.Context)
 }
@@ -34,7 +35,7 @@ func Open(dg *discordgo.Session, dh discordHandler) {
 	}
 	defer dg.Close()
 
-	// add command
+	// add subscribe command
 	_, err = dg.ApplicationCommandCreate(
 		dg.State.User.ID,
 		dg.State.Application.GuildID,
@@ -55,9 +56,32 @@ func Open(dg *discordgo.Session, dh discordHandler) {
 		slog.Error(fmt.Sprintf("error creating 'subscribe' command: %v", err))
 		return
 	}
+	// add list command
+	_, err = dg.ApplicationCommandCreate(
+		dg.State.User.ID,
+		dg.State.Application.GuildID,
+		&discordgo.ApplicationCommand{
+			Name:        "list",
+			Description: "List all subscribed RSS feeds",
+		},
+	)
+	if err != nil {
+		slog.Error(fmt.Sprintf("error creating 'list' command: %v", err))
+		return
+	}
 
 	// add handler
-	dg.AddHandler(dh.Create)
+	commandHandlers := map[string]func(*discordgo.Session, *discordgo.InteractionCreate){
+		"subscribe": dh.Create,
+		"list":      dh.List,
+	}
+	dg.AddHandler(
+		func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
+				h(s, i)
+			}
+		},
+	)
 
 	// add event
 	ctx, cancel := context.WithCancel(context.Background())
