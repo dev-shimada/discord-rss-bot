@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -14,7 +13,7 @@ import (
 )
 
 type DiscordHandler interface {
-	Create(ds *discordgo.Session, dm *discordgo.MessageCreate)
+	Create(ds *discordgo.Session, dig *discordgo.InteractionCreate)
 	FindAll() ([]model.Subscription, error)
 	CheckNewEntries(ctx context.Context)
 }
@@ -29,30 +28,35 @@ func NewDiscordHandler(ds *discordgo.Session, su usecase.SubscriptionUsecase, ru
 	return &discordHandler{ds: ds, su: su, ru: ru}
 }
 
-func (d discordHandler) Create(ds *discordgo.Session, dm *discordgo.MessageCreate) {
-	if dm.Author.ID == ds.State.User.ID {
-		return
+func (d discordHandler) Create(ds *discordgo.Session, dic *discordgo.InteractionCreate) {
+	// get options
+	options := dic.ApplicationCommandData().Options
+	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
+	for _, option := range options {
+		optionMap[option.Name] = option
 	}
-	if !strings.HasPrefix(dm.Content, "!subscribe ") {
-		return
-	}
+	value := optionMap["url"].StringValue()
 
 	// validate URL
-	arr := strings.Split(dm.Content, " ")
-	value := arr[1]
-	rssURL, err := url.Parse(value)
+	validUrl, err := url.ParseRequestURI(value)
 	if err != nil {
-		if _, err := ds.ChannelMessageSend(dm.ChannelID, "Invalid URL."); err != nil {
-			slog.Error(fmt.Sprintf("Failed to send message: %v", err))
-		}
+		_ = ds.InteractionRespond(dic.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Invalid URL.",
+			},
+		})
 		return
 	}
-
+	rssUrl := validUrl.String()
 	// subscribe
-	msg := d.su.Create(model.Subscription{ChannelID: dm.ChannelID, RSSURL: rssURL.String()})
-	if _, err := ds.ChannelMessageSend(dm.ChannelID, msg); err != nil {
-		slog.Error(fmt.Sprintf("Failed to send message: %v", err))
-	}
+	d.su.Create(model.Subscription{ChannelID: dic.ChannelID, RSSURL: rssUrl})
+	_ = ds.InteractionRespond(dic.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: fmt.Sprintf("Successfully subscribed to RSS feed: %s", rssUrl),
+		},
+	})
 }
 
 func (d discordHandler) FindAll() ([]model.Subscription, error) {
