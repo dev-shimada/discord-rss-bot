@@ -21,6 +21,7 @@ type rssEntriesUsecase interface {
 type subscriptionUsecase interface {
 	FindAll() ([]model.Subscription, error)
 	Create(sub model.Subscription) string
+	Delete(sub model.Subscription) error
 	List(sub model.Subscription) ([]model.Subscription, error)
 }
 
@@ -85,6 +86,35 @@ func (d DiscordHandler) List(ds *discordgo.Session, dic *discordgo.InteractionCr
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: txt,
+		},
+	})
+}
+
+func (d DiscordHandler) Delete(ds *discordgo.Session, dic *discordgo.InteractionCreate) {
+	// get options
+	options := dic.ApplicationCommandData().Options
+	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
+	for _, option := range options {
+		optionMap[option.Name] = option
+	}
+	value := optionMap["id"].UintValue()
+
+	// subscribe
+	err := d.su.Delete(model.Subscription{ID: uint(value), ChannelID: dic.ChannelID})
+	if err != nil {
+		_ = ds.InteractionRespond(dic.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Failed to delete subscription.",
+			},
+		})
+		return
+	}
+
+	_ = ds.InteractionRespond(dic.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: "Successfully deleted subscription.",
 		},
 	})
 }
