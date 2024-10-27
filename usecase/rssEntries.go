@@ -47,12 +47,14 @@ func (f RssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEn
 
 	existingEntries := f.rr.Find(cpRes)
 	newEntries := diff(res, existingEntries)
-	err := f.rr.Create(newEntries)
+	uniqueNewEntries := unique(newEntries)
+
+	err := f.rr.Create(uniqueNewEntries)
 	if err != nil {
 		slog.Error(fmt.Sprintf("failed to save RSS entries: %v", err))
 		return nil
 	}
-	return newEntries
+	return uniqueNewEntries
 }
 
 func fetchRSS(rssURL string) ([]*gofeed.Item, error) {
@@ -85,4 +87,17 @@ func diff(s1, s2 []model.RssEntry) []model.RssEntry {
 		}
 	}
 	return diffSlice
+}
+
+func unique(s []model.RssEntry) []model.RssEntry {
+	m := map[string]struct{}{}
+	res := []model.RssEntry{}
+
+	for _, v := range s {
+		if _, ok := m[v.EntryLink]; !ok {
+			m[v.EntryLink] = struct{}{}
+			res = append(res, v)
+		}
+	}
+	return res
 }
