@@ -1,0 +1,10 @@
+services:
+  discord-rss-bot:
+    image: ghcr.io/dev-shimada/discord-rss-bot:latest
+    restart: always
+    environment:
+      - DISCORD_BOT_TOKEN=
+    volumes:
+      - type: bind
+        source: ./sqlite
+        target: /app/sqlite

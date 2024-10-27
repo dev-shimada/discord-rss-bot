@@ -5,8 +5,15 @@
 
 # discord-rss-bot
 
-## Discord command
+## Getting started
+```
+docker compose up -d
+```
+
+## Usage
 - `/subscribe <URL>`
+- `/list`
+- `/unsubscribe <ID>`
 
 ## Docker build
 ```console
