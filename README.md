@@ -1,7 +1,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/dev-shimada/discord-rss-bot)](https://goreportcard.com/report/github.com/dev-shimada/discord-rss-bot)
 [![CI](https://github.com/dev-shimada/discord-rss-bot/actions/workflows/ci.yaml/badge.svg)](https://github.com/dev-shimada/discord-rss-bot/actions/workflows/ci.yaml)
 [![build](https://github.com/dev-shimada/discord-rss-bot/actions/workflows/build.yaml/badge.svg)](https://github.com/dev-shimada/discord-rss-bot/actions/workflows/build.yaml)
-[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/gojp/goreportcard/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://github.com/dev-shimada/discord-rss-bot/blob/master/LICENSE)
 
 # discord-rss-bot
 
