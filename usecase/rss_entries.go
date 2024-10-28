@@ -6,15 +6,15 @@ import (
 
 	"github.com/dev-shimada/discord-rss-bot/domain/model"
 	"github.com/dev-shimada/discord-rss-bot/domain/repository"
-	"github.com/mmcdole/gofeed"
 )
 
 type RssEntriesUsecase struct {
-	rr repository.RssEnrtyRepository
+	rr         repository.RssEnrtyRepository
+	rssFetcher repository.RssFetcher
 }
 
-func NewRssEntriesUsecase(rr repository.RssEnrtyRepository) RssEntriesUsecase {
-	return RssEntriesUsecase{rr: rr}
+func NewRssEntriesUsecase(rr repository.RssEnrtyRepository, rss repository.RssFetcher) RssEntriesUsecase {
+	return RssEntriesUsecase{rr: rr, rssFetcher: rss}
 }
 
 func (f RssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEntry {
@@ -24,7 +24,7 @@ func (f RssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEn
 	res := make([]model.RssEntry, 0, len(s))
 
 	for _, sub := range s {
-		items, err := fetchRSS(sub.RSSURL)
+		items, err := f.rssFetcher.Fetch(sub.RSSURL)
 		if err != nil {
 			slog.Warn(fmt.Sprintf("failed to fetch RSS: %v", err))
 			continue
@@ -55,15 +55,6 @@ func (f RssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEn
 		return nil
 	}
 	return uniqueNewEntries
-}
-
-func fetchRSS(rssURL string) ([]*gofeed.Item, error) {
-	fp := gofeed.NewParser()
-	feed, err := fp.ParseURL(rssURL)
-	if err != nil {
-		return nil, err
-	}
-	return feed.Items, nil
 }
 
 func diff(s1, s2 []model.RssEntry) []model.RssEntry {

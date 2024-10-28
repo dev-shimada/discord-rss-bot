@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"log/slog"
+	"os"
 	"time"
 
 	"github.com/dev-shimada/discord-rss-bot/domain/model"
@@ -13,7 +14,11 @@ import (
 var db *gorm.DB
 
 func NewDB() *gorm.DB {
-	if err := RetryConnectDB(sqlite.Open("sqlite/rss_subscriptions.db"), &gorm.Config{}, 100); err != nil {
+	p := os.Getenv("DB_PATH")
+	if p == "" {
+		p = "sqlite/rss_subscriptions.db"
+	}
+	if err := RetryConnectDB(sqlite.Open(p), &gorm.Config{}, 100); err != nil {
 		slog.Error(fmt.Sprint(err))
 		return nil
 	}

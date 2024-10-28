@@ -20,6 +20,7 @@ func (s subscriptionPersistence) Create(sub model.Subscription) error {
 	return s.db.Create(&sub).Error
 }
 
+// Deprecated: Use FindAll instead
 func (s subscriptionPersistence) Find(m []model.Subscription) ([]model.Subscription, error) {
 	res := s.db.Find(&m)
 	if res.Error != nil {
