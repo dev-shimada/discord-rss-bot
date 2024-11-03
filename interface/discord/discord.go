@@ -119,10 +119,6 @@ func (d DiscordHandler) Delete(ds *discordgo.Session, dic *discordgo.Interaction
 	})
 }
 
-func (d DiscordHandler) FindAll() ([]model.Subscription, error) {
-	return d.su.FindAll()
-}
-
 func (d DiscordHandler) CheckNewEntries(ctx context.Context) {
 	t := time.NewTicker(10 * time.Minute)
 	defer t.Stop()

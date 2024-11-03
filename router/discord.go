@@ -9,14 +9,12 @@ import (
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/dev-shimada/discord-rss-bot/domain/model"
 )
 
 type discordHandler interface {
 	Create(ds *discordgo.Session, dig *discordgo.InteractionCreate)
 	List(ds *discordgo.Session, dig *discordgo.InteractionCreate)
 	Delete(ds *discordgo.Session, dig *discordgo.InteractionCreate)
-	FindAll() ([]model.Subscription, error)
 	CheckNewEntries(ctx context.Context)
 }
 
