@@ -17,6 +17,10 @@ func NewRssEntriesUsecase(rr repository.RssEnrtyRepository, rss repository.RssFe
 	return RssEntriesUsecase{rr: rr, rssFetcher: rss}
 }
 
+func (f RssEntriesUsecase) Check(s model.Subscription) model.RssEntry {
+	return model.RssEntry{}
+}
+
 func (f RssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEntry {
 	if len(s) == 0 {
 		return []model.RssEntry{}
