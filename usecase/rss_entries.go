@@ -17,6 +17,27 @@ func NewRssEntriesUsecase(rr repository.RssEnrtyRepository, rss repository.RssFe
 	return RssEntriesUsecase{rr: rr, rssFetcher: rss}
 }
 
+func (f RssEntriesUsecase) Check(s model.Subscription) model.RssEntry {
+	if s.RSSURL == "" {
+		return model.RssEntry{}
+	}
+	items, err := f.rssFetcher.Fetch(s.RSSURL)
+	if err != nil {
+		slog.Warn(fmt.Sprintf("failed to fetch RSS: %v", err))
+		return model.RssEntry{}
+	}
+	if len(items) == 0 {
+		return model.RssEntry{}
+	}
+	item := items[0]
+	return model.RssEntry{
+		RSSURL:      s.RSSURL,
+		EntryTitle:  item.Title,
+		EntryLink:   item.Link,
+		PublishedAt: *item.PublishedParsed,
+	}
+}
+
 func (f RssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEntry {
 	if len(s) == 0 {
 		return []model.RssEntry{}

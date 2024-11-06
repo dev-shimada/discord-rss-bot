@@ -23,6 +23,67 @@ func (m mockRss) Fetch(rssURL string) ([]*gofeed.Item, error) {
 	return m.mockFetch()
 }
 
+// mockRssEnrtyRepository is a mock of RssEnrtyRepository interface
+type mockRssEnrtyRepository struct{}
+
+func (r mockRssEnrtyRepository) Create(_ []model.RssEntry) error          { return nil }
+func (r mockRssEnrtyRepository) Find(_ []model.RssEntry) []model.RssEntry { return nil }
+
+func TestCheck(t *testing.T) {
+	now := time.Now()
+	tests := []struct {
+		name  string
+		args  model.Subscription
+		fetch func() ([]*gofeed.Item, error)
+		want  model.RssEntry
+	}{
+		{
+			name: "empty",
+			args: model.Subscription{},
+			fetch: func() ([]*gofeed.Item, error) {
+				return []*gofeed.Item{}, nil
+			},
+			want: model.RssEntry{},
+		},
+		{
+			name: "multiple entries",
+			args: model.Subscription{RSSURL: "https://example.com"},
+			fetch: func() ([]*gofeed.Item, error) {
+				return []*gofeed.Item{
+					{Link: "https://example.com/entry1", Title: "title1", PublishedParsed: &now},
+					{Link: "https://example.com/entry2", Title: "title2", PublishedParsed: &now},
+				}, nil
+			},
+			want: model.RssEntry{RSSURL: "https://example.com", EntryTitle: "title1", EntryLink: "https://example.com/entry1", PublishedAt: now},
+		},
+		{
+			name: "fetch error",
+			args: model.Subscription{RSSURL: "https://example.com"},
+			fetch: func() ([]*gofeed.Item, error) {
+				return []*gofeed.Item{}, errors.New("error")
+			},
+			want: model.RssEntry{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			rr := mockRssEnrtyRepository{}
+			m := mockRss{tt.fetch}
+			f := usecase.NewRssEntriesUsecase(rr, m)
+
+			// test
+			got := f.Check(tt.args)
+
+			// assert
+			if !cmp.Equal(got, tt.want) {
+				t.Errorf("Diff: %v", cmp.Diff(got, tt.want))
+			}
+		})
+	}
+}
+
 func TestCheckNewEntries(t *testing.T) {
 	now := time.Now()
 

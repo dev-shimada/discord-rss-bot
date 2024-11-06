@@ -15,6 +15,7 @@ import (
 )
 
 type rssEntriesUsecase interface {
+	Check(s model.Subscription) model.RssEntry
 	CheckNewEntries(s []model.Subscription) []model.RssEntry
 }
 
@@ -115,6 +116,56 @@ func (d DiscordHandler) Delete(ds *discordgo.Session, dic *discordgo.Interaction
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: "Successfully deleted subscription.",
+		},
+	})
+}
+
+func (d DiscordHandler) Check(ds *discordgo.Session, dic *discordgo.InteractionCreate) {
+	// get options
+	options := dic.ApplicationCommandData().Options
+	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
+	for _, option := range options {
+		optionMap[option.Name] = option
+	}
+	value := optionMap["url"].StringValue()
+
+	// validate URL
+	validUrl, err := url.ParseRequestURI(value)
+	if err != nil {
+		_ = ds.InteractionRespond(dic.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Invalid URL.",
+			},
+		})
+		return
+	}
+	rssUrl := validUrl.String()
+	rss := d.ru.Check(model.Subscription{RSSURL: rssUrl})
+	if rss.EntryTitle == "" {
+		_ = ds.InteractionRespond(dic.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "No new entries.",
+			},
+		})
+		return
+	}
+	msg := &discordgo.MessageSend{
+		Embed: &discordgo.MessageEmbed{
+			Title:       rss.EntryTitle,
+			URL:         rss.EntryLink,
+			Description: rss.EntryTitle,
+			Timestamp:   rss.PublishedAt.Format("2006-01-02 15:04:05"),
+		},
+	}
+	if _, err := d.ds.ChannelMessageSendComplex(dic.ChannelID, msg); err != nil {
+		slog.Error(fmt.Sprintf("Failed to send message: %v", err))
+	}
+	_ = ds.InteractionRespond(dic.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: "New entry found.",
 		},
 	})
 }
