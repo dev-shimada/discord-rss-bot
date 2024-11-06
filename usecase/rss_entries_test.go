@@ -54,7 +54,7 @@ func TestCheck(t *testing.T) {
 					{Link: "https://example.com/entry2", Title: "title2", PublishedParsed: &now},
 				}, nil
 			},
-			want: model.RssEntry{ID: 1, RSSURL: "https://example.com", EntryTitle: "title1", EntryLink: "https://example.com/entry1", PublishedAt: now},
+			want: model.RssEntry{RSSURL: "https://example.com", EntryTitle: "title1", EntryLink: "https://example.com/entry1", PublishedAt: now},
 		},
 		{
 			name: "fetch error",
