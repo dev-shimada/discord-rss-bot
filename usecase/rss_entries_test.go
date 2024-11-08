@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dev-shimada/discord-rss-bot/domain/model"
+	"github.com/dev-shimada/discord-rss-bot/domain/repository"
 	"github.com/dev-shimada/discord-rss-bot/infrastructure/database"
 	"github.com/dev-shimada/discord-rss-bot/infrastructure/persistence"
 	"github.com/dev-shimada/discord-rss-bot/usecase"
@@ -24,7 +25,9 @@ func (m mockRss) Fetch(rssURL string) ([]*gofeed.Item, error) {
 }
 
 // mockRssEnrtyRepository is a mock of RssEnrtyRepository interface
-type mockRssEnrtyRepository struct{}
+type mockRssEnrtyRepository struct {
+	repository.RssEnrtyRepository
+}
 
 func (r mockRssEnrtyRepository) Create(_ []model.RssEntry) error          { return nil }
 func (r mockRssEnrtyRepository) Find(_ []model.RssEntry) []model.RssEntry { return nil }
