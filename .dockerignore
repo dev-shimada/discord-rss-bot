@@ -1,4 +1,5 @@
 .DS_Store
+.git
 rss_subscriptions.db
 bot
 
