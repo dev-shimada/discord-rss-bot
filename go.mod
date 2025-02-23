@@ -8,7 +8,7 @@ require (
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/olekukonko/tablewriter v0.0.5
 	golang.org/x/exp v0.0.0-20241004190924-225e2abe05e6
-	gorm.io/driver/sqlite v1.5.6
+	gorm.io/driver/sqlite v1.5.7
 	gorm.io/gorm v1.25.12
 )
 
