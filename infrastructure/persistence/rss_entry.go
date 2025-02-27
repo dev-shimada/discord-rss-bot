@@ -33,3 +33,9 @@ func (r RssEntryPersistence) Find(entries []model.RssEntry) []model.RssEntry {
 	r.db.Find(&entries)
 	return entries
 }
+
+func (r RssEntryPersistence) FindByModels(entries []model.RssEntry) []model.RssEntry {
+	res := []model.RssEntry{}
+	r.db.Where(&entries).Find(&res)
+	return res
+}

@@ -66,7 +66,7 @@ func (f RssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEn
 	cpRes := make([]model.RssEntry, len(s))
 	copy(cpRes, res)
 
-	existingEntries := f.rr.Find(cpRes)
+	existingEntries := f.rr.FindByModels(cpRes)
 	newEntries := diff(res, existingEntries)
 	uniqueNewEntries := unique(newEntries)
 
