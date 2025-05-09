@@ -9,6 +9,7 @@ import (
 	"github.com/dev-shimada/discord-rss-bot/infrastructure/database"
 	"github.com/dev-shimada/discord-rss-bot/infrastructure/persistence"
 	"github.com/google/go-cmp/cmp"
+	"gorm.io/gorm"
 )
 
 func TestRssEntryPersistenceCreate(t *testing.T) {
@@ -108,6 +109,71 @@ func TestRssEntryPersistenceFind(t *testing.T) {
 
 			// test
 			got := r.Find(tt.args)
+
+			// assert
+			if !cmp.Equal(got, tt.want) {
+				t.Errorf("diff: %v", cmp.Diff(got, tt.want))
+			}
+		})
+	}
+}
+func TestRssEntryPersistenceFindByModels(t *testing.T) {
+	now := time.Now()
+	tests := []struct {
+		name   string
+		args   []model.RssEntry
+		create func(db *gorm.DB)
+		want   []model.RssEntry
+	}{
+		{
+			name:   "empty",
+			args:   []model.RssEntry{},
+			create: func(db *gorm.DB) {},
+			want:   []model.RssEntry{},
+		},
+		{
+			name: "multiple",
+			args: []model.RssEntry{{ID: 1, RSSURL: "https://example.com/", EntryTitle: "title1", EntryLink: "https://example.com/entry1", PublishedAt: now}},
+			create: func(db *gorm.DB) {
+				db.Create(&model.RssEntry{ID: 1, RSSURL: "https://example.com/", EntryTitle: "title1", EntryLink: "https://example.com/entry1", PublishedAt: now})
+				db.Create(&model.RssEntry{ID: 2, RSSURL: "https://example.com/", EntryTitle: "title1", EntryLink: "https://example.com/entry1", PublishedAt: now})
+			},
+			want: []model.RssEntry{
+				{ID: 1, RSSURL: "https://example.com/", EntryTitle: "title1", EntryLink: "https://example.com/entry1", PublishedAt: now},
+			},
+		},
+		{
+			name: "no match",
+			args: []model.RssEntry{{ID: 1, RSSURL: "https://example.com/", EntryTitle: "title1", EntryLink: "https://example.com/entry1", PublishedAt: now}},
+			create: func(db *gorm.DB) {
+				db.Create(&model.RssEntry{ID: 2, RSSURL: "https://example.com/", EntryTitle: "title1", EntryLink: "https://example.com/entry1", PublishedAt: now})
+			},
+			want: []model.RssEntry{},
+		},
+	}
+
+	bfDbPath := os.Getenv("DB_PATH")
+	os.Setenv("DB_PATH", "testdata/test.db")
+	defer os.Setenv("DB_PATH", bfDbPath)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// setup
+			os.Remove("testdata/test.db")
+			db := database.NewDB()
+			defer database.CloseDB(db)
+			r := persistence.NewRssEntryPersistence(db)
+
+			// prepare
+			tt.create(db)
+
+			// test
+			got := r.FindByModels(tt.args)
+
+			// remove CreatedAt
+			for i := range got {
+				got[i].CreatedAt = time.Time{}
+			}
 
 			// assert
 			if !cmp.Equal(got, tt.want) {

@@ -15,6 +15,7 @@ docker compose up -d
 - `/subscribe <URL>`
 - `/list`
 - `/unsubscribe <ID>`
+- `/check <URL>`
 
 ## Docker build
 ```console
