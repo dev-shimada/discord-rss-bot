@@ -75,11 +75,15 @@ func (d DiscordHandler) List(ds *discordgo.Session, dic *discordgo.InteractionCr
 
 	tableString := &strings.Builder{}
 	table := tablewriter.NewWriter(tableString)
-	table.SetHeader([]string{"ID", "RSS URL"})
+	table.Header([]string{"ID", "RSS URL"})
 	for _, value := range values {
-		table.Append([]string{strconv.Itoa(int(value.ID)), value.RSSURL})
+		if err := table.Append([]string{strconv.Itoa(int(value.ID)), value.RSSURL}); err != nil {
+			slog.Error(fmt.Sprintf("Failed to append to table: %v", err))
+		}
 	}
-	table.Render()
+	if err := table.Render(); err != nil {
+		slog.Error(fmt.Sprintf("Failed to render table: %v", err))
+	}
 
 	txt := fmt.Sprintf("%s\n`%s`", title, tableString.String())
 

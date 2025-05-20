@@ -1,9 +1,3 @@
-FROM --platform=$BUILDPLATFORM golang:1.23.1-bookworm AS vscode
-WORKDIR /app
-COPY . /app
-# RUN  ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
-
-
 FROM --platform=$BUILDPLATFORM golang:1.23.1-bookworm AS build
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
