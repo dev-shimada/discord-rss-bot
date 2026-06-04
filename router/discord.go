@@ -33,7 +33,7 @@ func Open(dg *discordgo.Session, dh discordHandler) {
 		slog.Error(fmt.Sprintf("error opening connection: %v", err))
 		return
 	}
-	defer dg.Close()
+	defer func() { _ = dg.Close() }()
 
 	// add subscribe command
 	_, err = dg.ApplicationCommandCreate(
@@ -140,5 +140,5 @@ func Open(dg *discordgo.Session, dh discordHandler) {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
-	dg.Close()
+	_ = dg.Close()
 }

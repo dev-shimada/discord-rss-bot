@@ -25,14 +25,12 @@ func TestSubscriptionPersistenceCreate(t *testing.T) {
 		},
 	}
 
-	bfDbPath := os.Getenv("DB_PATH")
-	os.Setenv("DB_PATH", "testdata/test.db")
-	defer os.Setenv("DB_PATH", bfDbPath)
+	t.Setenv("DB_PATH", "testdata/test.db")
 
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
-			os.Remove("testdata/test.db")
+			_ = os.Remove("testdata/test.db")
 			db := database.NewDB()
 			defer database.CloseDB(db)
 			sr := persistence.NewSubscriptionPersistence(db)
@@ -114,14 +112,12 @@ func TestSubscriptionPersistenceFindByModel(t *testing.T) {
 		},
 	}
 
-	bfDbPath := os.Getenv("DB_PATH")
-	os.Setenv("DB_PATH", "testdata/test.db")
-	defer os.Setenv("DB_PATH", bfDbPath)
+	t.Setenv("DB_PATH", "testdata/test.db")
 
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
-			os.Remove("testdata/test.db")
+			_ = os.Remove("testdata/test.db")
 			db := database.NewDB()
 			defer database.CloseDB(db)
 			sr := persistence.NewSubscriptionPersistence(db)
@@ -168,14 +164,12 @@ func TestSubscriptionPersistenceFindAll(t *testing.T) {
 		},
 	}
 
-	bfDbPath := os.Getenv("DB_PATH")
-	os.Setenv("DB_PATH", "testdata/test.db")
-	defer os.Setenv("DB_PATH", bfDbPath)
+	t.Setenv("DB_PATH", "testdata/test.db")
 
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
-			os.Remove("testdata/test.db")
+			_ = os.Remove("testdata/test.db")
 			db := database.NewDB()
 			defer database.CloseDB(db)
 			sr := persistence.NewSubscriptionPersistence(db)
@@ -233,14 +227,12 @@ func TestSubscriptionPersistenceDelete(t *testing.T) {
 		},
 	}
 
-	bfDbPath := os.Getenv("DB_PATH")
-	os.Setenv("DB_PATH", "testdata/test.db")
-	defer os.Setenv("DB_PATH", bfDbPath)
+	t.Setenv("DB_PATH", "testdata/test.db")
 
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
-			os.Remove("testdata/test.db")
+			_ = os.Remove("testdata/test.db")
 			db := database.NewDB()
 			defer database.CloseDB(db)
 			sr := persistence.NewSubscriptionPersistence(db)

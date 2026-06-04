@@ -36,14 +36,12 @@ func TestRssEntryPersistenceCreate(t *testing.T) {
 		},
 	}
 
-	bfDbPath := os.Getenv("DB_PATH")
-	os.Setenv("DB_PATH", "testdata/test.db")
-	defer os.Setenv("DB_PATH", bfDbPath)
+	t.Setenv("DB_PATH", "testdata/test.db")
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
-			os.Remove("testdata/test.db")
+			_ = os.Remove("testdata/test.db")
 			db := database.NewDB()
 			defer database.CloseDB(db)
 			r := persistence.NewRssEntryPersistence(db)
@@ -91,14 +89,12 @@ func TestRssEntryPersistenceFind(t *testing.T) {
 		},
 	}
 
-	bfDbPath := os.Getenv("DB_PATH")
-	os.Setenv("DB_PATH", "testdata/test.db")
-	defer os.Setenv("DB_PATH", bfDbPath)
+	t.Setenv("DB_PATH", "testdata/test.db")
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
-			os.Remove("testdata/test.db")
+			_ = os.Remove("testdata/test.db")
 			db := database.NewDB()
 			defer database.CloseDB(db)
 			r := persistence.NewRssEntryPersistence(db)
