@@ -9,7 +9,7 @@ require (
 	github.com/olekukonko/tablewriter v1.1.4
 	golang.org/x/exp v0.0.0-20241004190924-225e2abe05e6
 	gorm.io/driver/sqlite v1.6.0
-	gorm.io/gorm v1.31.1
+	gorm.io/gorm v1.31.2
 )
 
 require (
