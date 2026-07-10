@@ -159,7 +159,7 @@ func (d DiscordHandler) Check(ds *discordgo.Session, dic *discordgo.InteractionC
 		Embed: &discordgo.MessageEmbed{
 			Title:       rss.EntryTitle,
 			URL:         rss.EntryLink,
-			Description: rss.EntryTitle,
+			Description: rss.EntryDescription,
 			Timestamp:   rss.PublishedAt.Format("2006-01-02 15:04:05"),
 		},
 	}
@@ -196,7 +196,7 @@ func (d DiscordHandler) CheckNewEntries(ctx context.Context) {
 							Embed: &discordgo.MessageEmbed{
 								Title:       newEntry.EntryTitle,
 								URL:         newEntry.EntryLink,
-								Description: newEntry.EntryTitle,
+								Description: newEntry.EntryDescription,
 								Timestamp:   newEntry.PublishedAt.Format("2006-01-02 15:04:05"),
 							},
 						}

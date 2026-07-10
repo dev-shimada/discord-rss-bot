@@ -31,10 +31,11 @@ func (f RssEntriesUsecase) Check(s model.Subscription) model.RssEntry {
 	}
 	item := items[0]
 	return model.RssEntry{
-		RSSURL:      s.RSSURL,
-		EntryTitle:  item.Title,
-		EntryLink:   item.Link,
-		PublishedAt: *item.PublishedParsed,
+		RSSURL:           s.RSSURL,
+		EntryTitle:       item.Title,
+		EntryLink:        item.Link,
+		EntryDescription: item.Description,
+		PublishedAt:      *item.PublishedParsed,
 	}
 }
 
@@ -56,10 +57,11 @@ func (f RssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEn
 				continue
 			}
 			res = append(res, model.RssEntry{
-				RSSURL:      sub.RSSURL,
-				EntryTitle:  item.Title,
-				EntryLink:   item.Link,
-				PublishedAt: *item.PublishedParsed,
+				RSSURL:           sub.RSSURL,
+				EntryTitle:       item.Title,
+				EntryLink:        item.Link,
+				EntryDescription: item.Description,
+				PublishedAt:      *item.PublishedParsed,
 			})
 		}
 	}

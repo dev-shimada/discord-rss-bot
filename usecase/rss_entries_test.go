@@ -50,11 +50,11 @@ func TestCheck(t *testing.T) {
 			args: model.Subscription{RSSURL: "https://example.com"},
 			fetch: func() ([]*gofeed.Item, error) {
 				return []*gofeed.Item{
-					{Link: "https://example.com/entry1", Title: "title1", PublishedParsed: &now},
-					{Link: "https://example.com/entry2", Title: "title2", PublishedParsed: &now},
+					{Link: "https://example.com/entry1", Title: "title1", Description: "description1", PublishedParsed: &now},
+					{Link: "https://example.com/entry2", Title: "title2", Description: "description2", PublishedParsed: &now},
 				}, nil
 			},
-			want: model.RssEntry{RSSURL: "https://example.com", EntryTitle: "title1", EntryLink: "https://example.com/entry1", PublishedAt: now},
+			want: model.RssEntry{RSSURL: "https://example.com", EntryTitle: "title1", EntryLink: "https://example.com/entry1", EntryDescription: "description1", PublishedAt: now},
 		},
 		{
 			name: "fetch error",
@@ -106,13 +106,13 @@ func TestCheckNewEntries(t *testing.T) {
 			args: []model.Subscription{{ID: 1, ChannelID: "123", RSSURL: "https://example.com", CreatedAt: now}},
 			fetch: func() ([]*gofeed.Item, error) {
 				return []*gofeed.Item{
-					{Link: "https://example.com/entry1", Title: "title1", PublishedParsed: &now},
-					{Link: "https://example.com/entry2", Title: "title2", PublishedParsed: &now},
+					{Link: "https://example.com/entry1", Title: "title1", Description: "description1", PublishedParsed: &now},
+					{Link: "https://example.com/entry2", Title: "title2", Description: "description2", PublishedParsed: &now},
 				}, nil
 			},
 			want: []model.RssEntry{
-				{ID: 1, RSSURL: "https://example.com", EntryTitle: "title1", EntryLink: "https://example.com/entry1", PublishedAt: now},
-				{ID: 2, RSSURL: "https://example.com", EntryTitle: "title2", EntryLink: "https://example.com/entry2", PublishedAt: now},
+				{ID: 1, RSSURL: "https://example.com", EntryTitle: "title1", EntryLink: "https://example.com/entry1", EntryDescription: "description1", PublishedAt: now},
+				{ID: 2, RSSURL: "https://example.com", EntryTitle: "title2", EntryLink: "https://example.com/entry2", EntryDescription: "description2", PublishedAt: now},
 			},
 		},
 		{
@@ -121,11 +121,11 @@ func TestCheckNewEntries(t *testing.T) {
 			fetch: func() ([]*gofeed.Item, error) {
 				old := now.Add(-time.Microsecond)
 				return []*gofeed.Item{
-					{Link: "https://example.com/entry1", Title: "title", PublishedParsed: &old},
-					{Link: "https://example.com/entry2", Title: "title", PublishedParsed: &now},
+					{Link: "https://example.com/entry1", Title: "title", Description: "description1", PublishedParsed: &old},
+					{Link: "https://example.com/entry2", Title: "title", Description: "description2", PublishedParsed: &now},
 				}, nil
 			},
-			want: []model.RssEntry{{ID: 1, RSSURL: "https://example.com", EntryTitle: "title", EntryLink: "https://example.com/entry2", PublishedAt: now}},
+			want: []model.RssEntry{{ID: 1, RSSURL: "https://example.com", EntryTitle: "title", EntryLink: "https://example.com/entry2", EntryDescription: "description2", PublishedAt: now}},
 		},
 		{
 			name: "fetch error",
