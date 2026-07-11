@@ -80,12 +80,24 @@ func TestRssEntryPersistenceFind(t *testing.T) {
 			want: []model.RssEntry{},
 		},
 		{
-			name: "multiple",
-			args: []model.RssEntry{{ID: 1}},
+			name: "matching link only",
+			args: []model.RssEntry{{EntryLink: "https://example.com/entry1"}},
+			want: []model.RssEntry{
+				{ID: 1, RSSURL: "https://example.com/", EntryTitle: "title1", EntryLink: "https://example.com/entry1", PublishedAt: now},
+			},
+		},
+		{
+			name: "multiple links",
+			args: []model.RssEntry{{EntryLink: "https://example.com/entry1"}, {EntryLink: "https://example.com/entry2"}},
 			want: []model.RssEntry{
 				{ID: 1, RSSURL: "https://example.com/", EntryTitle: "title1", EntryLink: "https://example.com/entry1", PublishedAt: now},
 				{ID: 2, RSSURL: "https://example.com/", EntryTitle: "title2", EntryLink: "https://example.com/entry2", PublishedAt: now},
 			},
+		},
+		{
+			name: "no match",
+			args: []model.RssEntry{{EntryLink: "https://example.com/nope"}},
+			want: []model.RssEntry{},
 		},
 	}
 
@@ -100,10 +112,19 @@ func TestRssEntryPersistenceFind(t *testing.T) {
 			r := persistence.NewRssEntryPersistence(db)
 
 			// prepare
-			db.Create(tt.want)
+			seed := []model.RssEntry{
+				{ID: 1, RSSURL: "https://example.com/", EntryTitle: "title1", EntryLink: "https://example.com/entry1", PublishedAt: now},
+				{ID: 2, RSSURL: "https://example.com/", EntryTitle: "title2", EntryLink: "https://example.com/entry2", PublishedAt: now},
+			}
+			db.Create(&seed)
 
 			// test
 			got := r.Find(tt.args)
+
+			// remove CreatedAt
+			for i := range got {
+				got[i].CreatedAt = time.Time{}
+			}
 
 			// assert
 			if !cmp.Equal(got, tt.want) {

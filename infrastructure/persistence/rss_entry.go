@@ -1,6 +1,9 @@
 package persistence
 
 import (
+	"fmt"
+	"log/slog"
+
 	"github.com/dev-shimada/discord-rss-bot/domain/model"
 	"github.com/dev-shimada/discord-rss-bot/domain/repository"
 	"gorm.io/gorm"
@@ -30,6 +33,14 @@ func (r RssEntryPersistence) Find(entries []model.RssEntry) []model.RssEntry {
 	if len(entries) == 0 {
 		return []model.RssEntry{}
 	}
-	r.db.Find(&entries)
-	return entries
+	links := make([]string, 0, len(entries))
+	for _, e := range entries {
+		links = append(links, e.EntryLink)
+	}
+	found := []model.RssEntry{}
+	if err := r.db.Where("entry_link IN ?", links).Find(&found).Error; err != nil {
+		slog.Error(fmt.Sprintf("failed to find RSS entries: %v", err))
+		return []model.RssEntry{}
+	}
+	return found
 }

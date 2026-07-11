@@ -2,10 +2,10 @@ package usecase
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/dev-shimada/discord-rss-bot/domain/model"
 	"github.com/dev-shimada/discord-rss-bot/domain/repository"
-	"golang.org/x/exp/slog"
 )
 
 type SubscriptionUsecase struct {

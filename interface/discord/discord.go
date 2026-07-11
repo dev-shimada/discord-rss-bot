@@ -68,8 +68,17 @@ func (d DiscordHandler) Create(ds *discordgo.Session, dic *discordgo.Interaction
 }
 
 func (d DiscordHandler) List(ds *discordgo.Session, dic *discordgo.InteractionCreate) {
-	// subscribe
-	values, _ := d.su.List(model.Subscription{ChannelID: dic.ChannelID})
+	values, err := d.su.List(model.Subscription{ChannelID: dic.ChannelID})
+	if err != nil {
+		slog.Error(fmt.Sprintf("Failed to list subscriptions: %v", err))
+		_ = ds.InteractionRespond(dic.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Failed to list subscriptions.",
+			},
+		})
+		return
+	}
 
 	title := "**Subscribed RSS feeds**"
 
@@ -186,7 +195,7 @@ func (d DiscordHandler) CheckNewEntries(ctx context.Context) {
 			subs, err := d.su.FindAll()
 			if err != nil {
 				slog.Warn(fmt.Sprintf("error fetching subscriptions: %v", err))
-				return
+				continue
 			}
 			newEntries := d.ru.CheckNewEntries(subs)
 			for _, entry := range subs {

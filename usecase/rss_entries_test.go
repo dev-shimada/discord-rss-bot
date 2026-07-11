@@ -57,6 +57,26 @@ func TestCheck(t *testing.T) {
 			want: model.RssEntry{RSSURL: "https://example.com", EntryTitle: "title1", EntryLink: "https://example.com/entry1", EntryDescription: "description1", PublishedAt: now},
 		},
 		{
+			name: "falls back to updated date",
+			args: model.Subscription{RSSURL: "https://example.com"},
+			fetch: func() ([]*gofeed.Item, error) {
+				return []*gofeed.Item{
+					{Link: "https://example.com/entry1", Title: "title1", Description: "description1", UpdatedParsed: &now},
+				}, nil
+			},
+			want: model.RssEntry{RSSURL: "https://example.com", EntryTitle: "title1", EntryLink: "https://example.com/entry1", EntryDescription: "description1", PublishedAt: now},
+		},
+		{
+			name: "nil published date",
+			args: model.Subscription{RSSURL: "https://example.com"},
+			fetch: func() ([]*gofeed.Item, error) {
+				return []*gofeed.Item{
+					{Link: "https://example.com/entry1", Title: "title1", Description: "description1"},
+				}, nil
+			},
+			want: model.RssEntry{RSSURL: "https://example.com", EntryTitle: "title1", EntryLink: "https://example.com/entry1", EntryDescription: "description1"},
+		},
+		{
 			name: "fetch error",
 			args: model.Subscription{RSSURL: "https://example.com"},
 			fetch: func() ([]*gofeed.Item, error) {
@@ -128,6 +148,17 @@ func TestCheckNewEntries(t *testing.T) {
 			want: []model.RssEntry{{ID: 1, RSSURL: "https://example.com", EntryTitle: "title", EntryLink: "https://example.com/entry2", EntryDescription: "description2", PublishedAt: now}},
 		},
 		{
+			name: "skip entries without date",
+			args: []model.Subscription{{ID: 1, ChannelID: "123", RSSURL: "https://example.com", CreatedAt: now}},
+			fetch: func() ([]*gofeed.Item, error) {
+				return []*gofeed.Item{
+					{Link: "https://example.com/entry1", Title: "title1", Description: "description1"},
+					{Link: "https://example.com/entry2", Title: "title2", Description: "description2", PublishedParsed: &now},
+				}, nil
+			},
+			want: []model.RssEntry{{ID: 1, RSSURL: "https://example.com", EntryTitle: "title2", EntryLink: "https://example.com/entry2", EntryDescription: "description2", PublishedAt: now}},
+		},
+		{
 			name: "fetch error",
 			args: []model.Subscription{{ID: 1, ChannelID: "123", RSSURL: "https://example.com", CreatedAt: now}},
 			fetch: func() ([]*gofeed.Item, error) {
@@ -162,6 +193,39 @@ func TestCheckNewEntries(t *testing.T) {
 				t.Errorf("Diff: %v", cmp.Diff(got, tt.want))
 			}
 		})
+	}
+}
+
+func TestCheckNewEntriesFetchesOncePerURL(t *testing.T) {
+	now := time.Now()
+
+	t.Setenv("DB_PATH", "testdata/test.db")
+	_ = os.Remove("testdata/test.db")
+	db := database.NewDB()
+	defer database.CloseDB(db)
+	rr := persistence.NewRssEntryPersistence(db)
+
+	fetchCount := 0
+	m := mockRss{mockFetch: func() ([]*gofeed.Item, error) {
+		fetchCount++
+		return []*gofeed.Item{
+			{Link: "https://example.com/entry1", Title: "title1", Description: "description1", PublishedParsed: &now},
+		}, nil
+	}}
+	f := usecase.NewRssEntriesUsecase(rr, m)
+
+	// two channels subscribe to the same URL
+	subs := []model.Subscription{
+		{ID: 1, ChannelID: "123", RSSURL: "https://example.com", CreatedAt: now},
+		{ID: 2, ChannelID: "456", RSSURL: "https://example.com", CreatedAt: now},
+	}
+	got := f.CheckNewEntries(subs)
+
+	if fetchCount != 1 {
+		t.Errorf("fetchCount = %d, want 1", fetchCount)
+	}
+	if len(got) != 1 {
+		t.Errorf("len(got) = %d, want 1", len(got))
 	}
 }
 

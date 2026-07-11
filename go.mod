@@ -7,7 +7,6 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/olekukonko/tablewriter v1.1.4
-	golang.org/x/exp v0.0.0-20260709172345-9ea1abe57597
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.2
 )

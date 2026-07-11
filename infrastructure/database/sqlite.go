@@ -45,7 +45,14 @@ func RetryConnectDB(dialector gorm.Dialector, opt gorm.Option, count uint) error
 }
 
 func CloseDB(db *gorm.DB) {
-	sqlDB, _ := db.DB()
+	if db == nil {
+		return
+	}
+	sqlDB, err := db.DB()
+	if err != nil {
+		slog.Error(fmt.Sprint(err))
+		return
+	}
 	if err := sqlDB.Close(); err != nil {
 		slog.Error(fmt.Sprint(err))
 	}

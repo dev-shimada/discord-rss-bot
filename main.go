@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -14,16 +15,26 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
+	if err := run(); err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	// Discord Bot Token
 	token := os.Getenv("DISCORD_BOT_TOKEN")
 
 	db := database.NewDB()
+	if db == nil {
+		return errors.New("failed to initialize database")
+	}
 	defer database.CloseDB(db)
 
 	// Create a new Discord session using the provided bot token.
 	session, err := router.NewRouter(token)
 	if err != nil {
-		slog.Error(fmt.Sprintf("error creating Discord session: %v", err))
+		return fmt.Errorf("error creating Discord session: %w", err)
 	}
 
 	// DI
@@ -31,4 +42,5 @@ func main() {
 
 	// Open Discord session
 	router.Open(session, dh)
+	return nil
 }

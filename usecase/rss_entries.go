@@ -3,9 +3,11 @@ package usecase
 import (
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/dev-shimada/discord-rss-bot/domain/model"
 	"github.com/dev-shimada/discord-rss-bot/domain/repository"
+	"github.com/mmcdole/gofeed"
 )
 
 type RssEntriesUsecase struct {
@@ -30,13 +32,26 @@ func (f RssEntriesUsecase) Check(s model.Subscription) model.RssEntry {
 		return model.RssEntry{}
 	}
 	item := items[0]
+	pub, _ := publishedAt(item)
 	return model.RssEntry{
 		RSSURL:           s.RSSURL,
 		EntryTitle:       item.Title,
 		EntryLink:        item.Link,
 		EntryDescription: item.Description,
-		PublishedAt:      *item.PublishedParsed,
+		PublishedAt:      pub,
 	}
+}
+
+// publishedAt returns the item's publish time, falling back to the update
+// time. ok is false when the feed provides no parseable timestamp at all.
+func publishedAt(item *gofeed.Item) (time.Time, bool) {
+	if item.PublishedParsed != nil {
+		return *item.PublishedParsed, true
+	}
+	if item.UpdatedParsed != nil {
+		return *item.UpdatedParsed, true
+	}
+	return time.Time{}, false
 }
 
 func (f RssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEntry {
@@ -45,15 +60,32 @@ func (f RssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEn
 	}
 	res := make([]model.RssEntry, 0, len(s))
 
+	// fetch each URL only once even when multiple channels subscribe to it
+	type fetchResult struct {
+		items []*gofeed.Item
+		err   error
+	}
+	fetched := map[string]fetchResult{}
+
 	for _, sub := range s {
-		items, err := f.rssFetcher.Fetch(sub.RSSURL)
-		if err != nil {
-			slog.Warn(fmt.Sprintf("failed to fetch RSS: %v", err))
+		fr, ok := fetched[sub.RSSURL]
+		if !ok {
+			items, err := f.rssFetcher.Fetch(sub.RSSURL)
+			fr = fetchResult{items: items, err: err}
+			fetched[sub.RSSURL] = fr
+		}
+		if fr.err != nil {
+			slog.Warn(fmt.Sprintf("failed to fetch RSS: %v", fr.err))
 			continue
 		}
-		for _, item := range items {
+		for _, item := range fr.items {
+			pub, ok := publishedAt(item)
+			if !ok {
+				slog.Warn(fmt.Sprintf("skipping entry without a parseable date: %s", item.Link))
+				continue
+			}
 			// skip if the item is older than the subscribed date
-			if sub.CreatedAt.After(*item.PublishedParsed) {
+			if sub.CreatedAt.After(pub) {
 				continue
 			}
 			res = append(res, model.RssEntry{
@@ -61,14 +93,12 @@ func (f RssEntriesUsecase) CheckNewEntries(s []model.Subscription) []model.RssEn
 				EntryTitle:       item.Title,
 				EntryLink:        item.Link,
 				EntryDescription: item.Description,
-				PublishedAt:      *item.PublishedParsed,
+				PublishedAt:      pub,
 			})
 		}
 	}
-	cpRes := make([]model.RssEntry, len(s))
-	copy(cpRes, res)
 
-	existingEntries := f.rr.Find(cpRes)
+	existingEntries := f.rr.Find(res)
 	newEntries := diff(res, existingEntries)
 	uniqueNewEntries := unique(newEntries)
 
