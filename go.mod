@@ -5,7 +5,7 @@ go 1.26.4
 require (
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/google/go-cmp v0.7.0
-	github.com/mmcdole/gofeed v1.4.1
+	github.com/mmcdole/gofeed v1.4.2
 	github.com/olekukonko/tablewriter v1.1.4
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.2
