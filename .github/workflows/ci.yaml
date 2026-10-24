@@ -18,10 +18,16 @@ jobs:
       with:
         go-version-file: ./go.mod
     
+    # NilAway is only available as a golangci-lint module plugin, so build a
+    # custom binary (see .custom-gcl.yml) instead of running the stock one.
+    # Keep this version in sync with .custom-gcl.yml.
+    - name: Build golangci-lint with NilAway
+      run: |
+        go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
+        $(go env GOPATH)/bin/golangci-lint custom
+
     - name: golangci-lint
-      uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # v9.2.1
-      with:
-        version: v2.12
+      run: ./custom-gcl run ./...
 
     - name: Go Vet
       run: go vet ./...

@@ -36,14 +36,33 @@ func NewDiscordHandler(ds *discordgo.Session, su subscriptionUsecase, ru rssEntr
 	return DiscordHandler{ds: ds, su: su, ru: ru}
 }
 
+// findOption returns the command option with the given name, if the user supplied it.
+func findOption(dic *discordgo.InteractionCreate, name string) (*discordgo.ApplicationCommandInteractionDataOption, bool) {
+	for _, option := range dic.ApplicationCommandData().Options {
+		if option != nil && option.Name == name {
+			return option, true
+		}
+	}
+	return nil, false
+}
+
+func respondMissingOption(ds *discordgo.Session, dic *discordgo.InteractionCreate, name string) {
+	_ = ds.InteractionRespond(dic.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: fmt.Sprintf("Missing option: %s.", name),
+		},
+	})
+}
+
 func (d DiscordHandler) Create(ds *discordgo.Session, dic *discordgo.InteractionCreate) {
 	// get options
-	options := dic.ApplicationCommandData().Options
-	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
-	for _, option := range options {
-		optionMap[option.Name] = option
+	option, ok := findOption(dic, "url")
+	if !ok {
+		respondMissingOption(ds, dic, "url")
+		return
 	}
-	value := optionMap["url"].StringValue()
+	value := option.StringValue()
 
 	// validate URL
 	validUrl, err := url.ParseRequestURI(value)
@@ -106,12 +125,12 @@ func (d DiscordHandler) List(ds *discordgo.Session, dic *discordgo.InteractionCr
 
 func (d DiscordHandler) Delete(ds *discordgo.Session, dic *discordgo.InteractionCreate) {
 	// get options
-	options := dic.ApplicationCommandData().Options
-	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
-	for _, option := range options {
-		optionMap[option.Name] = option
+	option, ok := findOption(dic, "id")
+	if !ok {
+		respondMissingOption(ds, dic, "id")
+		return
 	}
-	value := optionMap["id"].UintValue()
+	value := option.UintValue()
 
 	// subscribe
 	err := d.su.Delete(model.Subscription{ID: uint(value), ChannelID: dic.ChannelID})
@@ -135,12 +154,12 @@ func (d DiscordHandler) Delete(ds *discordgo.Session, dic *discordgo.Interaction
 
 func (d DiscordHandler) Check(ds *discordgo.Session, dic *discordgo.InteractionCreate) {
 	// get options
-	options := dic.ApplicationCommandData().Options
-	optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
-	for _, option := range options {
-		optionMap[option.Name] = option
+	option, ok := findOption(dic, "url")
+	if !ok {
+		respondMissingOption(ds, dic, "url")
+		return
 	}
-	value := optionMap["url"].StringValue()
+	value := option.StringValue()
 
 	// validate URL
 	validUrl, err := url.ParseRequestURI(value)
