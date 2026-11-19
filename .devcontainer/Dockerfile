@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM golang:1.27.3-bookworm
+FROM --platform=$BUILDPLATFORM golang:1.27.4-bookworm
 WORKDIR /app
 COPY . /app
 # RUN  ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
